@@ -1,0 +1,23 @@
+[base]
+name = "video_fps" # The FlowUnit name 
+device = "cpu" # The device the flowunit runs on,cpu,cuda,ascend
+version = "1.0.0" # The version of the flowunit
+description = "A flowunit for modelbox" # The description of the flowunit
+group_type = "generic" # flowunit group attribution 
+entry = "video_fps@Video_fpsFlowUnit" # Python flowunit entry function
+type = "python" # Fixed value
+
+#stream = true
+
+# Input ports description
+[input]
+[input.input1]
+name = "input_data"
+
+
+# Output ports description
+[output]
+[output.output1]
+name = "out_data"
+
+
