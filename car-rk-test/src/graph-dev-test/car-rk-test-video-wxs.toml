@@ -20,8 +20,9 @@ desc = "car detection for video streams"
 graphconf = """
 digraph car_detection {
     node [shape=Mrecord]
-    video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="rtsp://192.168.3.37/test" ]
-    #video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="/userdata/wm/test-video/test-2.mp4" ]
+    #video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="rtsp://192.168.3.37/test" ]
+    video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="/userdata/wm/test-video/test-1.mp4" ]
+    #video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="/userdata/wm/test-video/v9.mp4" ]
     #video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="/userdata/wm/code/modelbox-app/car-rk-test/src/graph-dev-test/car_test_video.mp4" ]
     videodemuxer [ type=flowunit flowunit=video_demuxer device=cpu deviceid="0" ]
     videodecoder [ type=flowunit flowunit=video_decoder device=rockchip deviceid="0" pix_fmt=rgb ]
@@ -35,11 +36,14 @@ digraph car_detection {
     yolov5_head_post [ type=flowunit flowunit=yolov5_head_post device=cpu batch_size="1" queue_size="1"]
     draw_boxes [ type=flowunit flowunit=draw_boxes device=cpu batch_size="1" queue_size="1"]
     video_fps [ type=flowunit flowunit=video_fps device=cpu ]
-    #videoencoder [ type=flowunit flowunit=video_encoder device=cpu encoder=mpeg4 format=mp4 default_dest_url="/userdata/wm/test-video/test-1-result.mp4" ]
-    videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=mp4 default_dest_url="/userdata/wm/test-video/test-2-result.mp4" ]
+    videoencoder [ type=flowunit flowunit=video_encoder device=cpu encoder=mpeg4 format=mp4 default_dest_url="/userdata/wm/test-video/test-1-result.mp4" ]
+    #videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=mp4 default_dest_url="/userdata/wm/test-video/test-2-result.mp4" ]
     #videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=rtsp default_dest_url="rtsp://192.168.3.18:554/test" ]
-    output_broker_pre [ type=flowunit flowunit=output_broker_pre device=cpu save_results=false]
-    output_broker [ type=flowunit flowunit=output_broker device=cpu retry_count_limit="2", retry_interval_base_ms="100", retry_interval_increment_ms="100", retry_interval_limit_ms="200"]
+    business_processing_tusou [ type=flowunit flowunit=business_processing_tusou device=cpu save_results=false ]
+    output_broker_event_pre [ type=flowunit flowunit=output_broker_pre device=cpu]
+    output_broker_object_pre [ type=flowunit flowunit=output_broker_pre device=cpu]
+    event_output_broker [ type=flowunit flowunit=output_broker device=cpu mode="sync" retry_count_limit="2", retry_interval_base_ms="100", retry_interval_increment_ms="100", retry_interval_limit_ms="200"]
+    object_output_broker [ type=flowunit flowunit=output_broker device=cpu mode="sync" retry_count_limit="2", retry_interval_base_ms="100", retry_interval_increment_ms="100", retry_interval_limit_ms="200"]
 
     video_input:out_video_url -> videodemuxer:in_video_url
     videodemuxer:out_video_packet -> videodecoder:in_video_packet
@@ -62,8 +66,11 @@ digraph car_detection {
     yolov5_car_detect_post:"no_car" -> video_fps:input_data
     draw_boxes:"out_data" -> video_fps:input_data
     video_fps:out_data -> videoencoder:in_video_frame
-    video_fps:"out_data" -> output_broker_pre:"input_data"
-    output_broker_pre:"out_event_data" -> output_broker:"in_output_info"
+    video_fps:"out_data" -> business_processing_tusou:"input_data"
+    business_processing_tusou:"out_event_data" -> output_broker_event_pre:"input_data"
+    business_processing_tusou:"out_object_data" -> output_broker_object_pre:"input_data"
+    output_broker_event_pre:"out_data" -> event_output_broker:"in_output_info"
+    output_broker_object_pre:"out_data" -> object_output_broker:"in_output_info"
 
 }
 \

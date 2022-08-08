@@ -7,11 +7,6 @@ group_type = "generic" # flowunit group attribution
 entry = "output_broker_pre@Output_broker_preFlowUnit" # Python flowunit entry function
 type = "python" # Fixed value
 
-[config]
-output_broker_config = "/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/output_broker_pre/webhook-wxs-config.json"
-draw_results = false
-save_results = false
-
 # Input ports description
 [input]
 [input.input1]
@@ -21,6 +16,6 @@ name = "input_data"
 # Output ports description
 [output]
 [output.output1]
-name = "out_event_data"
+name = "out_data"
 
 
