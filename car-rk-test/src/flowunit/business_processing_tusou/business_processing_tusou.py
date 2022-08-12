@@ -21,6 +21,8 @@ import json
 import numpy as np
 import cv2
 from datetime import datetime
+import os
+import base64
 
 class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
     # Derived from modelbox.FlowUnit
@@ -42,31 +44,33 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
         self.track_objects.append(track_object)
 
     class Track_Object:
-        def __init__(self, id, x, y, w, h, scores, img, frame_id, detect_time):
+        def __init__(self, id, x, y, w, h, scores, classes, img, frame_id, detect_time):
             self.id = id
             self.x = x
             self.y = y
             self.w = w
             self.h = h
             self.scores = scores
+            self.classes = classes
             self.img = img
             self.frame_id = frame_id
             self.detect_time = detect_time
 
         def update(self, other):
-            if (other.w * other.h) > (self.w * self.h):
+            # if (other.w * other.h) > (self.w * self.h):
                 # return
-            # if other.scores > self.scores:
+            if other.scores > self.scores:
                 self.x = other.x
                 self.y = other.y
                 self.w = other.w
                 self.h = other.h
                 self.scores = other.scores
+                self.classes = other.classes
                 self.img = other.img
                 self.frame_id = other.frame_id
                 self.detect_time = other.detect_time
         def __str__(self):
-            return ("id: {}, x: {}, y: {}, w: {}, h: {}, scores: {}, frame_id: {}, detect_time: {}".format(self.id, self.x, self.y, self.w, self.h, self.scores, self.frame_id, self.detect_time))
+            return ("id: {}, x: {}, y: {}, w: {}, h: {}, scores: {}, classes: {}, frame_id: {}, detect_time: {}".format(self.id, self.x, self.y, self.w, self.h, self.scores, self.classes, self.frame_id, self.detect_time))
 
     def open(self, config):
         # Open the flowunit to obtain configuration information
@@ -75,11 +79,38 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
             self.output_cfg = cfg_file.read()
         self.draw_results = config.get_bool("draw_results")
         self.save_violation_img = config.get_bool("save_results")
+        self.save_results_path = config.get_string("save_results_path")
+        self.violation_event_root_path = os.path.join(self.save_results_path, "violation-event")
+        self.objects_root_path = os.path.join(self.save_results_path, "objects")
+        if not os.path.exists(self.save_results_path) or not os.path.exists(self.violation_event_root_path) or os.path.exists(self.objects_root_path):
+            if not os.path.exists(self.violation_event_root_path):
+                os.makedirs(self.violation_event_root_path)
+            if not os.path.exists(self.objects_root_path):
+                os.makedirs(self.objects_root_path)
+        self.include_base64Img = config.get_bool("include_base64Img")
+
         # self.car_classes = ['Car', 'Bus', 'Truck', 'Tricycle', 'Motorbike', 'Bicycle', 'Special', 'vehicle_Unknown']
         self.car_classes = ['Car_Saloon', 'Car_SUV', 'Car_MPV', 'Car_Jeep', 'Car_Sports', 'Car_Taxi', 'Car_Police', 'Bus_Big', 'Bus_Middle',
             'Bus_Small', 'Bus_School', 'Bus_Bus', 'Bus_Ambulance', 'Truck_Big','Truck_Van', 'Truck_Engineering', 'Truck_Fueltank', 'Truck_Construction',
             'Truck_Fire', 'Truck_Garbage', 'Truck_Watering', 'Tricycle', 'Motorbike', 'Bicycle', 'Special_Military', 
             'Special_other', 'vehicle_Unknown']
+        
+        # 11	大型客车
+        # 12	中型客车
+        # 13	小型客车
+        # 14	微型客车
+        # 21	重中型货车
+        # 22	轻微型货车
+        # 23	三轮车
+        # 30	摩托车
+        # 40	挂车
+        # 50	电动自行车
+        # 60	拖拉机
+        # 99	其他
+        self.wus_classes = {
+            "": 11,
+            "": 12,
+        }
         self.rentou_classes = ['TOUKUI','TOU','FXP', 'BS']
         self.track_object_max_size = 10
         self.track_objects = []
@@ -91,13 +122,6 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
         in_data = data_context.input("input_data")
         out_object_data_list = data_context.output("out_object_data")
         out_event_data_list = data_context.output("out_event_data")
-
-        session_ctx = data_context.get_session_context()
-        session_cfg = session_ctx.get_session_config()
-        session_cfg.set("flowunit.output_broker.config", self.output_cfg)
-        # session_cfg.set("config", self.output_cfg)
-        
-        
         # for buffer in in_data:
         #     result = buffer.as_object()
         #     print(result, type(result))
@@ -131,6 +155,7 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
             out_img = np.array(buffer.as_object(), dtype=np.uint8)
             # out_img = out_img.reshape(640, 640, channel)
             out_img = out_img.reshape(height, width, channel)
+            out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
 
             head_boxes = buffer.get("sgie_bboxes")
             head_boxes = np.array(head_boxes).reshape(-1, 4)
@@ -152,11 +177,10 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
             detect_time = now.strftime("%Y-%m-%d %H:%M:%S")
             # print(detect_time)
             result_null = 'null'
-
-            # out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
-            # cv2.imwrite("/home/wm/code/modelbox-app/car-rk-test/src/flowunit/draw_boxes/t2.jpg", out_img)
-            # buffer_image = cv2.imencode('.jpg', out_img)[1]
-            # img_base64 = str(base64.b64encode(buffer_image))[2:-1]
+            img_base64 = "base64 img"
+            if self.include_base64Img:
+                buffer_image = cv2.imencode('.jpg', out_img)[1]
+                img_base64 = str(base64.b64encode(buffer_image))[2:-1]
             # modelbox.info("img base64 len: {}".format(len(img_base64)))
             vioaltion_num = 0
             for ind, box in enumerate(bboxes):
@@ -183,7 +207,7 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                 trackid = trackid if trackid else ''
                 
                 if trackid != '':
-                    new_track_object = self.Track_Object(trackid, box[0], box[1], box[3] - box[1], box[2] - box[0], score, out_img, frame_index, detect_time);
+                    new_track_object = self.Track_Object(trackid, box[0], box[1], box[3] - box[1], box[2] - box[0], score, cl, out_img, frame_index, detect_time);
                     has_track_object, curr_track = self.find_track(new_track_object) 
                     if has_track_object:
                         curr_track.update(new_track_object)
@@ -224,7 +248,7 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                     # 以车辆左上角为原点
                     head_iter = '"X": "{}", "Y": "{}", "W": "{}", "H":"{}", "KXD": "{}"'.format(h_box[0], h_box[1], h_box[3] - h_box[1], h_box[2] - h_box[0], int(h_sc*100))
                     head_list.append(head_iter)
-                    # TODO violation
+                    # violation
                     if 'Truck' in self.car_classes[cl]:
                         if 'TOUKUI' == self.rentou_classes[h_cl]:
                             boxcar_helmet_count = boxcar_helmet_count + 1
@@ -266,14 +290,13 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                 if find_violation and True:
                     # add buffer : one car info and full img
                     if self.save_violation_img:
-                        out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
-                        cv2.imwrite("/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/business_processing_tusou/violation/v-{}-{}.jpg".format(frame_index, vioaltion_num), out_img)
+                        # out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
+                        cv2.imwrite("{}/v-{}-{}.jpg".format(self.violation_event_root_path, frame_index, vioaltion_num), out_img)
                     vioaltion_num = vioaltion_num + 1
 
                     event_json = {
                         "sxjbh": "camera id",
-                        # "tp": img_base64,
-                        "tp": "base64 img",
+                        "tp": img_base64,
                         "gcsj": detect_time,
                         "clgzid": trackid,
                         "wztz": {
@@ -333,14 +356,13 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
 
                     modelbox.info("removed track {}".format(iter))
                     if self.save_violation_img:
-                        out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
-                        iter_img = cv2.cvtColor(iter.img, cv2.COLOR_RGB2BGR)
-                        cv2.imwrite("/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/business_processing_tusou/report/r-{}-{}.jpg".format(iter.frame_id, iter.id), iter_img)
-                        cv2.imwrite("/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/business_processing_tusou/report/r-{}-{}-ori.jpg".format(iter.frame_id, iter.id), out_img)
+                        # out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
+                        # iter_img = cv2.cvtColor(iter.img, cv2.COLOR_RGB2BGR)
+                        cv2.imwrite("{}/r-{}-{}.jpg".format(self.objects_root_path, iter.frame_id, iter.id), iter.img)
+                        cv2.imwrite("{}/r-{}-{}-leave.jpg".format(self.objects_root_path, iter.frame_id, iter.id), out_img)
                     report_json = {
                         "sxjbh": "camera id",
-                        # "tp": img_base64,
-                        "tp": "base64 img",
+                        "tp": img_base64,
                         "gcsj": iter.detect_time,
                         "clgzid": iter.id,
                         "wztz": {
@@ -428,6 +450,9 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
     def data_pre(self, data_context):
         # Before streaming data starts
         modelbox.info("--------start pre-------")
+        session_ctx = data_context.get_session_context()
+        session_cfg = session_ctx.get_session_config()
+        session_cfg.set("flowunit.output_broker.config", self.output_cfg)
         return modelbox.Status()
 
     def data_post(self, data_context):

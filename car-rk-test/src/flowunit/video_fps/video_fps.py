@@ -31,6 +31,7 @@ class Video_fpsFlowUnit(modelbox.FlowUnit):
 
     def open(self, config):
         # Open the flowunit to obtain configuration information
+        self.show_fps = config.get_bool("show_fps")
         return modelbox.Status.StatusCode.STATUS_SUCCESS
 
     def process(self, data_context):
@@ -47,8 +48,6 @@ class Video_fpsFlowUnit(modelbox.FlowUnit):
             frame_index = buffer_img.get('index')
             # modelbox.debug("get frame shape {} {} {}".format(channel, width, height))
             # modelbox.info("get frame index: {}".format(frame_index))
-            img_data = np.array(buffer_img.as_object(), copy=False)
-            img_data = img_data.reshape((height, width, channel))
 
             current_time = time.time()
             # if not frame_index % 8 :
@@ -63,16 +62,19 @@ class Video_fpsFlowUnit(modelbox.FlowUnit):
                 self.last_time = current_time
                 # modelbox.debug("fps: {}".format(self.cur_fps))
 
+            if self.show_fps:
+                img_data = np.array(buffer_img.as_object(), copy=False)
+                img_data = img_data.reshape((height, width, channel))
+                cv2.putText(img_data, 'fps: {0}'.format(self.cur_fps),
+                                                            (10, 20),
+                                                            cv2.FONT_HERSHEY_SIMPLEX,
+                                                            0.6, (0, 255, 255), 2)
 
-            cv2.putText(img_data, 'fps: {0}'.format(self.cur_fps),
-                                                        (10, 20),
-                                                        cv2.FONT_HERSHEY_SIMPLEX,
-                                                        0.6, (0, 255, 255), 2)
-
-            add_buffer = modelbox.Buffer(self.get_bind_device(), img_data)
-            add_buffer.copy_meta(buffer_img)
-            out_data.push_back(add_buffer)
-            # out_data.push_back(buffer_img)
+                add_buffer = modelbox.Buffer(self.get_bind_device(), img_data)
+                add_buffer.copy_meta(buffer_img)
+                out_data.push_back(add_buffer)
+            else:
+                out_data.push_back(buffer_img)
 
         return modelbox.Status.StatusCode.STATUS_SUCCESS
 

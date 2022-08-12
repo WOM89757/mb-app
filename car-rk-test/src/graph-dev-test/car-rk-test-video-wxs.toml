@@ -9,8 +9,8 @@ skip-default = false
 
 [profile]
 performance=false # 启用performance
-trace=true # 启用traceing
-dir="/home/wm/modelbox-perf/perf-video" # 设置跟踪文件路径
+trace=false # 启用traceing
+dir="/userdata/wm/modelbox-perf/perf-video" # 设置跟踪文件路径
 
 
 [flow]

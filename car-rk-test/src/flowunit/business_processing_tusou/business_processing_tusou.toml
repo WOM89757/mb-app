@@ -15,9 +15,12 @@ type = "python" # Fixed value
 #collapse = true
 
 [config]
-output_broker_config = "/userdata/wm/code/modelbox-app/car-rk-test/src/graph-dev-test/webhook-wxs-config.json"
+#output_broker_config = "/opt/modelbox/application/tusou-rockchip/flowunit/business_processing_tusou/webhook-wxs-config.json"
+output_broker_config = "/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/business_processing_tusou/webhook-wxs-config.json"
 draw_results = false
 save_results = false
+save_results_path = "/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/business_processing_tusou/results"
+include_base64Img = false
 
 # Input ports description
 [input]

@@ -9,6 +9,9 @@ type = "python" # Fixed value
 
 #stream = true
 
+[config]
+show_fps = false
+
 # Input ports description
 [input]
 [input.input1]
