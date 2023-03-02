@@ -1,0 +1,61 @@
+
+[driver]
+dir = [
+"/opt/modelbox/application/car-rk-test/flowunit",
+"/home/wm/code/modelbox-app/car-rk-test/src/flowunit",
+"/root/car-rk-test/src/flowunit",
+]
+skip-default = false
+
+
+[profile]
+performance=false # 启用performance
+trace=false # 启用traceing
+dir="/home/wm/modelbox-perf/perf" # 设置跟踪文件路径
+
+
+[flow]
+desc = "car detection for image streams"
+
+[graph]
+graphconf = """
+digraph car_detection {
+    node [shape=Mrecord]
+    httpserver_sync_receive [ type=flowunit flowunit=httpserver_sync_receive device=cpu time_out_ms="5000" endpoint="http://0.0.0.0:8190/v1/img_detect" max_requests="100" ]
+    mnist_preprocess [ type=flowunit flowunit=mnist_preprocess device=cpu ]
+    img_resize [ type=flowunit flowunit=resize device=cpu image_height="640" image_width="640" interpolation=inter_linear ]
+    yolov5_car_detect_rk [ type=flowunit flowunit=yolov5_car_detect_rk device=rockchip ]
+    yolov5_car_detect_post [ type=flowunit flowunit=yolov5_car_detect_post device=cpu ]
+    expand_car_boxes [ type=flowunit flowunit=expand_box device=cpu ]
+    car_resize [ type=flowunit flowunit=resize device=cpu image_height="640" image_width="640" interpolation=inter_linear ]
+    yolov5_head_detect_rk [ type=flowunit flowunit=yolov5_head_detect_rk device=rockchip batch_size="1" queue_size="16"  ]
+    yolov5_head_post [ type=flowunit flowunit=yolov5_head_post device=cpu batch_size="16"  queue_size="16" ]
+    mnist_response [ type=flowunit flowunit=mnist_response device=cpu ]
+    draw_boxes [ type=flowunit flowunit=draw_boxes device=cpu ]
+    httpserver_sync_reply [ type=flowunit flowunit=httpserver_sync_reply device=cpu ]
+
+    httpserver_sync_receive:out_request_info -> mnist_preprocess:in_data
+    mnist_preprocess:"out_data" -> img_resize:"in_image"
+    img_resize:"out_image" -> yolov5_car_detect_rk:"input"
+    yolov5_car_detect_rk:"output" -> yolov5_car_detect_post:"in_feat"
+    yolov5_car_detect_rk:"output2" -> yolov5_car_detect_post:"in_feat2"
+    yolov5_car_detect_rk:"output3" -> yolov5_car_detect_post:"in_feat3"
+    mnist_preprocess:"out_data" -> yolov5_car_detect_post:"in_image"
+    yolov5_car_detect_post:"has_car" -> expand_car_boxes:"in_data"
+    expand_car_boxes:"roi_image" -> car_resize:"in_image"
+    car_resize:"out_image" -> yolov5_head_detect_rk:"input"
+    yolov5_head_detect_rk:"output" -> yolov5_head_post:"in_feat"
+    yolov5_head_detect_rk:"output2" -> yolov5_head_post:"in_feat2"
+    yolov5_head_detect_rk:"output3" -> yolov5_head_post:"in_feat3"
+    expand_car_boxes:"roi_image" -> yolov5_head_post:"in_image"
+    yolov5_head_post:"out_data" -> draw_boxes:"in_head"
+    yolov5_car_detect_post:"has_car" -> draw_boxes:"in_image"
+    yolov5_car_detect_post:"no_car" -> mnist_response:"in_image"
+    draw_boxes:"out_data" -> mnist_response:"in_image"
+    mnist_response:"out_data" -> httpserver_sync_reply:"in_reply_info"
+
+}
+\
+"""
+format = "graphviz"
+
