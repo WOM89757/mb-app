@@ -106,6 +106,7 @@ class Yolov5Post(modelbox.FlowUnit):
             if bboxes is not None:
                 nbboxes_num = np.append(nbboxes_num, len(bboxes))
                 for box in bboxes:
+                    box[np.where(box<0)] = 0
                     # xyxy
                     box[0] = box[0] / ratio_w
                     box[1] = box[1] / ratio_h

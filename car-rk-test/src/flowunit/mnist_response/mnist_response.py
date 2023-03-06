@@ -49,6 +49,7 @@ class MnistResponseFlowUnit(modelbox.FlowUnit):
                 # img_data = np.array(buffer_img, dtype=np.uint8, copy=False)
 
                 img_data = img_data.reshape((height, width, channel))
+                img_data = cv2.cvtColor(img_data, cv2.COLOR_RGB2BGR)
                 # img_data = img_data.reshape((width, height, channel))
                 # img_data = img_data.reshape((640, 640, channel))
                 # img_data = cv2.resize(img_data, (width, height))

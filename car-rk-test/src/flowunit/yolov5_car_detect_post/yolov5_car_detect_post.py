@@ -102,6 +102,7 @@ class Yolov5Post(modelbox.FlowUnit):
                 modelbox.debug("----1-- {}".format(bboxes))
 
                 for box in bboxes:
+                    box[np.where(box<0)] = 0
                     # xyxy
                     box[0] = box[0] / ratio_w
                     box[1] = box[1] / ratio_h

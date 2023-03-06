@@ -26,6 +26,14 @@ class MnistPreprocess(modelbox.FlowUnit):
 
     def open(self, config):
         return modelbox.Status.StatusCode.STATUS_SUCCESS
+    
+    def get_align(self, x, align=16, is_ceil=True):
+        while (x % align) != 0:
+            if is_ceil :
+                x = x + 1
+            else:
+                x = x - 1
+        return x
 
     def process(self, data_context):
         in_data = data_context.input("in_data")
@@ -41,10 +49,19 @@ class MnistPreprocess(modelbox.FlowUnit):
 
                 # reshape img
                 img = cv2.imdecode(np.fromstring(img_file, np.uint8), cv2.IMREAD_COLOR)
-                modelbox.info("--------img size: {}".format(img.shape))
+                modelbox.debug("--------img size: {}".format(img.shape))
                 o_height = img.shape[0]
                 o_width  = img.shape[1]
-                modelbox.info("--------ori img size: {} {} {}".format(o_height, o_width, type(o_width)))
+
+                # if o_width % 48 != 0:
+                #     o_width = self.get_align(o_width, 48, False)
+                # if o_height % 6 != 0:
+                #     o_height = self.get_align(o_height, 6, False)
+
+                # img = cv2.resize(img, (o_height, o_width),cv2.co)
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+                modelbox.debug("--------ori img size: {} {} {}".format(o_height, o_width, type(o_width)))
                 infer_data = img
                 # img = cv2.resize(img, (28, 28))
                 # infer_data = np.array([255 - img], dtype=np.float32)

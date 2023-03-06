@@ -2,6 +2,7 @@
 [driver]
 dir = [
 "/opt/modelbox/application/car-rk-test/flowunit",
+"/home/wm/code/modelbox-app/car-rk-test/src/flowunit"
 ]
 skip-default = false
 
