@@ -16,15 +16,16 @@
 import _flowunit as modelbox
 import numpy as np
 import cv2
+import time
 
 class DrawBoxes(modelbox.FlowUnit):
     def __init__(self):
         super().__init__()
-        # self.car_classes = ['Car', 'Bus', 'Truck', 'Tricycle', 'Motorbike', 'Bicycle', 'Special', 'vehicle_Unknown']
-        self.car_classes = ['Car_Saloon', 'Car_SUV', 'Car_MPV', 'Car_Jeep', 'Car_Sports', 'Car_Taxi', 'Car_Police', 'Bus_Big', 'Bus_Middle',
-            'Bus_Small', 'Bus_School', 'Bus_Bus', 'Bus_Ambulance', 'Truck_Big','Truck_Van', 'Truck_Engineering', 'Truck_Fueltank', 'Truck_Construction',
-            'Truck_Fire', 'Truck_Garbage', 'Truck_Watering', 'Tricycle', 'Motorbike', 'Bicycle', 'Special_Military', 
-            'Special_other', 'vehicle_Unknown']
+        self.car_classes = ['Car', 'Bus', 'Truck', 'Tricycle', 'Motorbike', 'Bicycle', 'Special', 'vehicle_Unknown']
+        # self.car_classes = ['Car_Saloon', 'Car_SUV', 'Car_MPV', 'Car_Jeep', 'Car_Sports', 'Car_Taxi', 'Car_Police', 'Bus_Big', 'Bus_Middle',
+        #     'Bus_Small', 'Bus_School', 'Bus_Bus', 'Bus_Ambulance', 'Truck_Big','Truck_Van', 'Truck_Engineering', 'Truck_Fueltank', 'Truck_Construction',
+        #     'Truck_Fire', 'Truck_Garbage', 'Truck_Watering', 'Tricycle', 'Motorbike', 'Bicycle', 'Special_Military', 
+        #     'Special_other', 'vehicle_Unknown']
         self.rentou_classes = ['TOUKUI','TOU','FXP', 'BS']
 
     def open(self, config):
@@ -102,6 +103,7 @@ class DrawBoxes(modelbox.FlowUnit):
                                                         0.6, (0, 255, 255), 2)
                 h_frist = h_frist + head_boxes_num[ind]
             
+           
             # modelbox.info("head_bboxes: {}".format(head_boxes))
             # for box in head_boxes:
             #     modelbox.info(box)
@@ -111,6 +113,7 @@ class DrawBoxes(modelbox.FlowUnit):
             add_buffer = modelbox.Buffer(self.get_bind_device(), out_img)
             add_buffer.copy_meta(image)
             out_data_list.push_back(add_buffer)
+
 
         return modelbox.Status.StatusCode.STATUS_SUCCESS
 

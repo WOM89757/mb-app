@@ -46,6 +46,13 @@ safy_belt_classes = (
         "Smoking"
 )
 
+car_classes = ('Car_Saloon', 'Car_SUV', 'Car_MPV', 'Car_Jeep', 'Car_Sports', 'Car_Taxi', 'Car_Police', 'Bus_Big', 'Bus_Middle',
+            'Bus_Small', 'Bus_School', 'Bus_Bus', 'Bus_Ambulance', 'Truck_Big','Truck_Van', 'Truck_Engineering', 'Truck_Fueltank', 'Truck_Construction',
+            'Truck_Fire', 'Truck_Garbage', 'Truck_Watering', 'Tricycle', 'Motorbike', 'Bicycle', 'Special_Military', 
+            'Special_other', 'vehicle_Unknown')
+
+# car_classes = ['Car', 'Bus', 'Truck', 'Tricycle', 'Motorbike', 'Bicycle', 'Special', 'vehicle_Unknown']
+
 
 def nms(boxes, scores, nms_thr):
     """Single class NMS implemented in Numpy."""
@@ -169,22 +176,22 @@ def draw(image, boxes, scores, classes):
         all_classes: all classes name.
     """
     # image = cv2.resize(image, (416,416))
-    image = cv2.resize(image, (416,416), interpolation = cv2.INTER_AREA)
+    # image = cv2.resize(image, (640,640), interpolation = cv2.INTER_AREA)
     for box, score, cl in zip(boxes, scores, classes):
         top, left, right, bottom = box
-        if top < 0 or top > 416 : continue
-        if left < 0 or left > 416 : continue
-        if right < 0 or right > 416 : continue
-        if bottom < 0 or bottom > 416 : continue
-        print('class: {}, score: {}'.format(safy_belt_classes[cl], score))
-        print('box coordinate: [{}, {}, {}, {}]'.format(top, left, right, bottom))
+        # if top < 0 or top > 416 : continue
+        # if left < 0 or left > 416 : continue
+        # if right < 0 or right > 416 : continue
+        # if bottom < 0 or bottom > 416 : continue
+        # print('class: {}, score: {}'.format(car_classes[cl], score))
+        # print('box coordinate: [{}, {}, {}, {}]'.format(top, left, right, bottom))
         top = int(top)
         left = int(left)
         right = int(right)
         bottom = int(bottom)
 
         cv2.rectangle(image, (top, left), (right, bottom), (255, 0, 0), 2)
-        cv2.putText(image, '{0} {1:.2f}'.format(safy_belt_classes[cl], score),
+        cv2.putText(image, '{0} {1:.2f}'.format(car_classes[cl], score),
                     (top, left - 6),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.6, (0, 0, 255), 2)

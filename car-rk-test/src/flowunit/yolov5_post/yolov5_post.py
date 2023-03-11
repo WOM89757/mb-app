@@ -17,6 +17,7 @@ import _flowunit as modelbox
 import numpy as np 
 import json 
 import cv2 
+import time
 
 from yolov5_utils import *
 
@@ -32,10 +33,11 @@ class Yolov5Post(modelbox.FlowUnit):
         self.conf_thre = config.get_float('conf_threshold', 0.3)
         self.nms_thre = config.get_float('iou_threshold', 0.4)
         self.anchors = {
-            "in_feat": 52,
-            "in_feat2": 26,
-            "in_feat3": 13,
+            "in_feat": int(self.net_h/8),
+            "in_feat2":int(self.net_h/16),
+            "in_feat3":int(self.net_h/32),
         }
+        # self.last_time = 0
 
         return modelbox.Status.StatusCode.STATUS_SUCCESS
 
@@ -88,14 +90,41 @@ class Yolov5Post(modelbox.FlowUnit):
 
             bboxes, classes, scores = yolov5_post_process(input_data, self.conf_thre, self.nms_thre, self.net_h)
             
+
+            ratio_h = self.net_h/height
+            ratio_w = self.net_w/width
+
+
             if bboxes is not None:
                 modelbox.debug("--------boxes size: {} ".format(len(bboxes)))
                 modelbox.debug(" \n{}".format(bboxes))
+
+                for box in bboxes:
+                    box[np.where(box<0)] = 0
+                    # xyxy
+                    box[0] = box[0] / ratio_w
+                    box[1] = box[1] / ratio_h
+                    box[2] = box[2] / ratio_w
+                    box[3] = box[3] / ratio_h
                 img_out = draw(img_data, bboxes, scores, classes)
                 # cv2.imwrite("/home/wm/code/car-rk-test/src/graph/t1.jpg", img_out)
-                add_buffer = modelbox.Buffer(self.get_bind_device(), img_out)
+
+                # current_time = time.time()
+                
+                # cur_fps = 1/(current_time - self.last_time)
+                # self.last_time = current_time
+                # # modelbox.info("fps: {}".format(cur_fps))
+                # cv2.putText(img_data, 'fps: {0:.3f}'.format(cur_fps),
+                #                                             (10, 20),
+                #                                             cv2.FONT_HERSHEY_SIMPLEX,
+                #                                             0.6, (0, 255, 255), 2)
+
+                add_buffer = modelbox.Buffer(self.get_bind_device(), img_data)
                 add_buffer.copy_meta(buffer_img)
                 out_data.push_back(add_buffer)
+                # out_data.push_back(buffer_img)
+                
+
             else:
                 out_data.push_back(buffer_img)
             

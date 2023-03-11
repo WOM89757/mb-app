@@ -18,15 +18,15 @@ name = "yolov5_car_detect_rk"
 device = "rockchip"
 version = "1.0.0"
 description = "car detection infer by rockchip"
-#entry = "./car_det_yolov5n_v6.rknn"
-entry = "./CarDet_Yolo5V4_int8.rknn"
+entry = "./car_det_yolov5n_v6_batch_2_int8.rknn"
+#entry = "./CarDet_Yolo5V4_int8.rknn"
 type = "inference"
 virtual_type = "rknpu2"
 is_input_contiguous= "false"
 
 [config]
 # 1 2 4
-core_mask_id = 1
+core_mask_id = 0
 
 [input]
 [input.input1]

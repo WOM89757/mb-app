@@ -28,7 +28,7 @@ net_h = 640
 net_w = 640
 num_classes = 4
 conf_threshold = 0.25
-iou_threshold = 0.45
+iou_threshold = 0.35
 
 [input]
 [input.input1]

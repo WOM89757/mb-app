@@ -18,9 +18,9 @@ name = "yolov5_head_detect_rk"
 device = "rockchip"
 version = "1.0.0"
 description = "head detection infer by rockchip"
-#entry = "./rentou_batch_12.rknn"
+entry = "./rentou_batch_8_int8.rknn"
 #entry = "./rentou.rknn"
-entry = "./rentou_int8.rknn"
+#entry = "./rentou_int8.rknn"
 type = "inference"
 virtual_type = "rknpu2"
 is_input_contiguous= "false"
@@ -30,7 +30,7 @@ is_input_contiguous= "false"
 
 [config]
 # 1 2 4
-core_mask_id = 4
+core_mask_id = 0
 
 [input]
 [input.input1]

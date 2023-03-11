@@ -7,7 +7,7 @@ dir = [
 skip-default = false
 
 [profile]
-performance=true # 启用performance
+performance=false # 启用performance
 trace=true # 启用traceing
 dir="/home/wm/modelbox-perf/perf" # 设置跟踪文件路径
 
@@ -20,13 +20,15 @@ desc = "car detection for video streams"
 graphconf = """
 digraph car_detection {
     node [shape=Mrecord]
-    video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="/home/wm/code/modelbox-app/car-rk-test/src/graph/car_test_video.mp4" ]
+    video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="/home/wm/test-video/test-1.mp4" ]
     videodemuxer [ type=flowunit flowunit=video_demuxer device=cpu deviceid="0" ]
-    videodecoder [ type=flowunit flowunit=video_decoder device=cpu deviceid="0" pix_fmt=rgb ]
-    image_resize [ type=flowunit flowunit=resize device=cpu deviceid="0" image_width="416" image_height="416" ]
-    model_inference [ type=flowunit flowunit=car_detect device=rockchip deviceid="0" batch_size="1" queue_size="16" core_mask_id="0" ]
+    videodecoder [ type=flowunit flowunit=video_decoder device=rockchip deviceid="0" pix_fmt=rgb ]
+    image_resize [ type=flowunit flowunit=resize device=cpu deviceid="0" image_width="640" image_height="640"]
+    model_inference [ type=flowunit flowunit=car_detect device=rockchip deviceid="0" batch_size="8" queue_size="8" core_mask_id="0" ]
     yolov5_post [ type=flowunit flowunit=yolov5_post device=cpu deviceid="0" ]
-    videoencoder [ type=flowunit flowunit=video_encoder device=cpu deviceid="0" encoder=mpeg4 format=mp4 default_dest_url="/home/wm/code/modelbox-app/car-rk-test/src/graph/car_test_video-detected.mp4" ]
+    video_fps [ type=flowunit flowunit=video_fps device=cpu deviceid="0"]
+    #videoencoder [ type=flowunit flowunit=video_encoder device=cpu deviceid="0" encoder=mpeg4 format=mp4 default_dest_url="/home/wm/code/modelbox-app/car-rk-test/src/graph/car_test_video-detected.mp4" ]
+    videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=rtsp default_dest_url="rtsp://192.168.3.18:554/test" ]
 
     video_input:out_video_url -> videodemuxer:in_video_url
     videodemuxer:out_video_packet -> videodecoder:in_video_packet
@@ -36,7 +38,8 @@ digraph car_detection {
     model_inference:output2 -> yolov5_post:in_feat2
     model_inference:output3 -> yolov5_post:in_feat3
     videodecoder:out_video_frame -> yolov5_post:in_image
-    yolov5_post:out_data -> videoencoder:in_video_frame
+    yolov5_post:out_data -> video_fps:input_data
+    video_fps:out_data -> videoencoder:in_video_frame
 
 }
 \
