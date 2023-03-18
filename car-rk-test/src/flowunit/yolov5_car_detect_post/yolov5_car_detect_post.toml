@@ -27,9 +27,9 @@ condition = true
 [config]
 net_h = 640
 net_w = 640
-num_classes = 8
+num_classes = 27
 conf_threshold = 0.35
-iou_threshold = 0.45
+iou_threshold = 0.35
 max_edge = 2
 
 

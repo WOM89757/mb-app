@@ -21,11 +21,11 @@ import time
 class DrawBoxes(modelbox.FlowUnit):
     def __init__(self):
         super().__init__()
-        self.car_classes = ['Car', 'Bus', 'Truck', 'Tricycle', 'Motorbike', 'Bicycle', 'Special', 'vehicle_Unknown']
-        # self.car_classes = ['Car_Saloon', 'Car_SUV', 'Car_MPV', 'Car_Jeep', 'Car_Sports', 'Car_Taxi', 'Car_Police', 'Bus_Big', 'Bus_Middle',
-        #     'Bus_Small', 'Bus_School', 'Bus_Bus', 'Bus_Ambulance', 'Truck_Big','Truck_Van', 'Truck_Engineering', 'Truck_Fueltank', 'Truck_Construction',
-        #     'Truck_Fire', 'Truck_Garbage', 'Truck_Watering', 'Tricycle', 'Motorbike', 'Bicycle', 'Special_Military', 
-        #     'Special_other', 'vehicle_Unknown']
+        # self.car_classes = ['Car', 'Bus', 'Truck', 'Tricycle', 'Motorbike', 'Bicycle', 'Special', 'vehicle_Unknown']
+        self.car_classes = ['Car_Saloon', 'Car_SUV', 'Car_MPV', 'Car_Jeep', 'Car_Sports', 'Car_Taxi', 'Car_Police', 'Bus_Big', 'Bus_Middle',
+            'Bus_Small', 'Bus_School', 'Bus_Bus', 'Bus_Ambulance', 'Truck_Big','Truck_Van', 'Truck_Engineering', 'Truck_Fueltank', 'Truck_Construction',
+            'Truck_Fire', 'Truck_Garbage', 'Truck_Watering', 'Tricycle', 'Motorbike', 'Bicycle', 'Special_Military', 
+            'Special_other', 'vehicle_Unknown']
         self.rentou_classes = ['TOUKUI','TOU','FXP', 'BS']
 
     def open(self, config):
@@ -45,7 +45,12 @@ class DrawBoxes(modelbox.FlowUnit):
             pgie_scores = image.get("bboxes_scores")
             # modelbox.info("pgie_classes: {}".format(pgie_classes))
             # modelbox.info("pgie_scores: {}".format(pgie_scores))
+            try:
+                pgie_track_ids = image.get("tracker_ids")
+            except ValueError:
+                pgie_track_ids = [0] * bboxes.shape[0]
 
+                
             width = image.get("width")
             height = image.get("height")
             channel = image.get("channel")
@@ -78,7 +83,9 @@ class DrawBoxes(modelbox.FlowUnit):
 
 
                 # print('class: {}, score: {}'.format(self.car_classes[cl], score))
-                cv2.putText(out_img, '{0} {1:.2f}'.format(self.car_classes[cl], score),
+                trackid = pgie_track_ids[ind]
+                trackid = trackid if trackid else ''
+                cv2.putText(out_img, '{0} {1} {2:.2f}'.format(trackid, self.car_classes[cl], score),
                                                         (box[0], box[1] - 6),
                                                         cv2.FONT_HERSHEY_SIMPLEX,
                                                         0.6, (0, 255, 255), 2)

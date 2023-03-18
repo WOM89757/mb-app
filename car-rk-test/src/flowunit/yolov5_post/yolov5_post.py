@@ -122,8 +122,6 @@ class Yolov5Post(modelbox.FlowUnit):
                 add_buffer = modelbox.Buffer(self.get_bind_device(), img_data)
                 add_buffer.copy_meta(buffer_img)
                 out_data.push_back(add_buffer)
-                # out_data.push_back(buffer_img)
-                
 
             else:
                 out_data.push_back(buffer_img)

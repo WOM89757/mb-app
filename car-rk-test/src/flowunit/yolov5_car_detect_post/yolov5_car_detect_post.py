@@ -119,10 +119,12 @@ class Yolov5Post(modelbox.FlowUnit):
                 add_buffer = modelbox.Buffer(self.get_bind_device(), img_data)
                 # bboxes = np.delete(bboxes, -1, axis=1).astype(int)
                 bboxes = bboxes.astype(int)
+                classes = classes.astype(int)
+                scores = scores.astype(float)
                 add_buffer.copy_meta(buffer_img)
                 add_buffer.set("bboxes", bboxes.flatten().tolist())
-                add_buffer.set("bboxes_classes", classes)
-                add_buffer.set("bboxes_scores", scores)
+                add_buffer.set("bboxes_classes", classes.flatten().tolist())
+                add_buffer.set("bboxes_scores", scores.flatten().tolist())
                 out_data.push_back(add_buffer)
             else:
                 no_out_data.push_back(buffer_img)
@@ -137,7 +139,7 @@ class Yolov5Post(modelbox.FlowUnit):
             # ratio = min(self.net_h / height, self.net_w / width)
             # bboxes = postprocess(feat_data, (self.net_h, self.net_w), self.num_classes, self.conf_thre, self.nms_thre, ratio)
             # if bboxes is not None:
-            #     img_out = draw_bbox(img_data, bboxes)
+            # img_out = draw_bbox(img_data, bboxes)
             #     add_buffer = modelbox.Buffer(self.get_bind_device(), img_out)
             #     add_buffer.copy_meta(buffer_img)
             #     out_data.push_back(add_buffer)

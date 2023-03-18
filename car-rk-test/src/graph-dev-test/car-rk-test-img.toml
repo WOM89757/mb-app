@@ -1,15 +1,15 @@
 
 [driver]
 dir = [
-"/home/wm/code/modelbox-app/car-rk-test/src/flowunit"
+"/home/wm/code/modelbox-app/car-rk-test/src/flowunit",
 ]
 skip-default = false
 
 
 [profile]
-performance=true # 启用performance
+performance=false # 启用performance
 trace=true # 启用traceing
-dir="/home/wm/modelbox-perf/perf" # 设置跟踪文件路径
+dir="/home/wm/modelbox-perf/perf-img" # 设置跟踪文件路径
 
 
 [flow]
@@ -23,11 +23,12 @@ digraph car_detection {
     mnist_preprocess [ type=flowunit flowunit=mnist_preprocess device=cpu ]
     img_resize [ type=flowunit flowunit=resize device=cpu image_height="640" image_width="640" interpolation=inter_linear ]
     yolov5_car_detect_rk [ type=flowunit flowunit=yolov5_car_detect_rk device=rockchip ]
-    yolov5_car_detect_post [ type=flowunit flowunit=yolov5_car_detect_post device=cpu ]
+    yolov5_car_detect_post [ type=flowunit flowunit=yolov5_car_detect_post device=cpu]
     expand_car_boxes [ type=flowunit flowunit=expand_box device=cpu ]
-    car_resize [ type=flowunit flowunit=resize device=cpu image_height="640" image_width="640" interpolation=inter_linear ]
-    yolov5_head_detect_rk [ type=flowunit flowunit=yolov5_head_detect_rk device=rockchip batch_size="8" queue_size="8"  ]
-    yolov5_head_post [ type=flowunit flowunit=yolov5_head_post device=cpu batch_size="16"  queue_size="16" ]
+    #car_resize [ type=flowunit flowunit=resize device=cpu image_height="640" image_width="640" interpolation=inter_linear ]
+    car_resize [ type=flowunit flowunit=resize device=cpu image_height="256" image_width="256" interpolation=inter_linear ]
+    yolov5_head_detect_rk [ type=flowunit flowunit=yolov5_head_detect_rk device=rockchip batch_size="1" ]
+    yolov5_head_post [ type=flowunit flowunit=yolov5_head_post device=cpu]
     mnist_response [ type=flowunit flowunit=mnist_response device=cpu ]
     draw_boxes [ type=flowunit flowunit=draw_boxes device=cpu ]
     httpserver_sync_reply [ type=flowunit flowunit=httpserver_sync_reply device=cpu ]

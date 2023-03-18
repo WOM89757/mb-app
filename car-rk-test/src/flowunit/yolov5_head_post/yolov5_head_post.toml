@@ -24,10 +24,10 @@ type = "python"
 collapse = true
 
 [config]
-net_h = 640
-net_w = 640
+net_h = 256
+net_w = 256
 num_classes = 4
-conf_threshold = 0.25
+conf_threshold = 0.35
 iou_threshold = 0.35
 
 [input]

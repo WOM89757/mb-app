@@ -22,13 +22,14 @@ digraph car_detection {
     node [shape=Mrecord]
     video_input [ type=flowunit flowunit=video_input device=cpu deviceid="0" source_url="/home/wm/test-video/test-1.mp4" ]
     videodemuxer [ type=flowunit flowunit=video_demuxer device=cpu deviceid="0" ]
-    videodecoder [ type=flowunit flowunit=video_decoder device=rockchip deviceid="0" pix_fmt=rgb ]
+    videodecoder [ type=flowunit flowunit=video_decoder device=rockchip deviceid="0" pix_fmt=rgb  ]
     image_resize [ type=flowunit flowunit=resize device=cpu deviceid="0" image_width="640" image_height="640"]
-    model_inference [ type=flowunit flowunit=car_detect device=rockchip deviceid="0" batch_size="8" queue_size="8" core_mask_id="0" ]
+    model_inference [ type=flowunit flowunit=car_detect device=rockchip deviceid="0" batch_size="8" queue_size="64"  core_mask_id="0" ]
     yolov5_post [ type=flowunit flowunit=yolov5_post device=cpu deviceid="0" ]
     video_fps [ type=flowunit flowunit=video_fps device=cpu deviceid="0"]
-    #videoencoder [ type=flowunit flowunit=video_encoder device=cpu deviceid="0" encoder=mpeg4 format=mp4 default_dest_url="/home/wm/code/modelbox-app/car-rk-test/src/graph/car_test_video-detected.mp4" ]
-    videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=rtsp default_dest_url="rtsp://192.168.3.18:554/test" ]
+    videoencoder [ type=flowunit flowunit=video_encoder device=cpu deviceid="0" encoder=mpeg4 format=mp4 default_dest_url="/home/wm/test-video/test-1-result1.mp4" ]
+    #videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=mp4 default_dest_url="/home/wm/test-video/test-1-result.mp4" ]
+    #videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=rtsp default_dest_url="rtsp://192.168.3.18:554/test" ]
 
     video_input:out_video_url -> videodemuxer:in_video_url
     videodemuxer:out_video_packet -> videodecoder:in_video_packet
