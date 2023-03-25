@@ -37,6 +37,8 @@ digraph car_detection {
     #videoencoder [ type=flowunit flowunit=video_encoder device=cpu encoder=mpeg4 format=mp4 default_dest_url="/home/wm/test-video/test-1-result.mp4" ]
     videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=mp4 default_dest_url="/home/wm/test-video/test-1-result.mp4" ]
     #videoencoder [ type=flowunit flowunit=video_out device=rockchip encoder=mpeg4 format=rtsp default_dest_url="rtsp://192.168.3.18:554/test" ]
+    output_broker_pre [ type=flowunit flowunit=output_broker_pre device=cpu save_results=false]
+    output_broker [ type=flowunit flowunit=output_broker device=cpu retry_count_limit="2", retry_interval_base_ms="100", retry_interval_increment_ms="100", retry_interval_limit_ms="200"]
 
     video_input:out_video_url -> videodemuxer:in_video_url
     videodemuxer:out_video_packet -> videodecoder:in_video_packet
@@ -59,6 +61,8 @@ digraph car_detection {
     yolov5_car_detect_post:"no_car" -> video_fps:input_data
     draw_boxes:"out_data" -> video_fps:input_data
     video_fps:out_data -> videoencoder:in_video_frame
+    video_fps:"out_data" -> output_broker_pre:"input_data"
+    output_broker_pre:"out_event_data" -> output_broker:"in_output_info"
 
 }
 \

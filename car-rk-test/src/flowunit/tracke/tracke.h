@@ -26,7 +26,25 @@
 constexpr const char *FLOWUNIT_NAME = "tracke";
 constexpr const char *FLOWUNIT_TYPE = "cpu";
 constexpr const char *FLOWUNIT_VERSION = "1.0.0";
-constexpr const char *FLOWUNIT_DESC = "\n\t@Brief: A tracke flowunit for modelbox";
+constexpr const char *FLOWUNIT_DESC =
+    "\n\t@Brief: A tracker that get a track id for rectangle area on the input bboxes flowunit on cpu. \n"
+    "\t@Port parameter: The input port buffer type is image, the "
+    "output port buffer type are image. \n"
+    "\t  The input buffer contains the following meta fields:\n"
+    "\t\tField Name: bboxes,              Type: vector<ssize_t>\n"
+    "\t\tField Name: bboxes_classes,      Type: vector<ssize_t>\n"
+    "\t\tField Name: bboxes_scores,       Type: vector<double>\n"
+    "\t\tField Name: width,               Type: int32_t\n"
+    "\t\tField Name: height,              Type: int32_t\n"
+    "\t\tField Name: width_stride,        Type: int32_t\n"
+    "\t\tField Name: height_stride,       Type: int32_t\n"
+    "\t\tField Name: channel,             Type: int32_t\n"
+    "\t\tField Name: pix_fmt,             Type: string\n"
+    "\t\tField Name: layout,              Type: int32_t\n"
+    "\t\tField Name: shape,               Type: vector<size_t>\n"
+    "\t\tField Name: type,                Type: ModelBoxDataType::MODELBOX_UINT8\n"
+    "\t@Constraint:";
+
 
 class TrackeFlowUnit : public modelbox::FlowUnit {
  public:
@@ -43,6 +61,7 @@ class TrackeFlowUnit : public modelbox::FlowUnit {
 
  private:
   std::shared_ptr<BYTETracker> tracker;
+  std::mutex tracker_mtx_;
   float fps;
   bool init_flag;
 };

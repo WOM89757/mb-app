@@ -68,7 +68,7 @@ class MnistResponseFlowUnit(modelbox.FlowUnit):
 
                 
 
-            result_str = (json.dumps(result) + chr(0)).encode('utf-8').strip()
+            result_str = (json.dumps(result)).encode('utf-8').strip()
             add_buffer = modelbox.Buffer(self.get_bind_device(), result_str)
             out_data.push_back(add_buffer)
 

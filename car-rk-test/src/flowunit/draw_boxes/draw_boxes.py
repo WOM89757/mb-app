@@ -103,11 +103,11 @@ class DrawBoxes(modelbox.FlowUnit):
                     h_left = h_box[1] + box[1]
                     h_right = h_box[2] + box[0]
                     h_bottom = h_box[3] + box[1]
-                    cv2.rectangle(out_img, (h_top, h_left), (h_right, h_bottom), (0, 255, ), 1)
+                    cv2.rectangle(out_img, (h_top, h_left), (h_right, h_bottom), (0, 255, 0), 1)
                     cv2.putText(out_img, '{0} {1:.2f}'.format(self.rentou_classes[h_cl], h_sc),
                                                         (h_top, h_left - 6),
                                                         cv2.FONT_HERSHEY_SIMPLEX,
-                                                        0.6, (0, 255, 255), 2)
+                                                        0.3, (255, 0, 255), 2)
                 h_frist = h_frist + head_boxes_num[ind]
             
            
@@ -119,6 +119,14 @@ class DrawBoxes(modelbox.FlowUnit):
             # cv2.imwrite("/home/wm/code/car-rk-test/src/flowunit/draw_boxes/t1.jpg", out_img)
             add_buffer = modelbox.Buffer(self.get_bind_device(), out_img)
             add_buffer.copy_meta(image)
+            add_buffer.set("pgie_bboxes", bboxes.flatten().tolist())
+            add_buffer.set("pgie_bboxes_classes", pgie_classes)
+            add_buffer.set("pgie_bboxes_scores", pgie_scores)
+            add_buffer.set("pgie_tracker_ids", pgie_track_ids)
+            add_buffer.set("sgie_bboxes", head_boxes)
+            add_buffer.set("sgie_bboxes_num", head_boxes_num)
+            add_buffer.set("sgie_bboxes_classes", sgie_classes)
+            add_buffer.set("sgie_bboxes_scores", sgie_scores)
             out_data_list.push_back(add_buffer)
 
 

@@ -61,7 +61,7 @@ class Video_fpsFlowUnit(modelbox.FlowUnit):
                 self.cur_fps = self.frame_count
                 self.frame_count = 0
                 self.last_time = current_time
-                modelbox.info("fps: {}".format(self.cur_fps))
+                # modelbox.debug("fps: {}".format(self.cur_fps))
 
 
             cv2.putText(img_data, 'fps: {0}'.format(self.cur_fps),
