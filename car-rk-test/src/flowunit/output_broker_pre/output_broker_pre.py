@@ -208,7 +208,7 @@ class Output_broker_preFlowUnit(modelbox.FlowUnit):
                     # add buffer : one car info and full img
                     if self.save_violation_img:
                         out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
-                        cv2.imwrite("/home/wm/code/modelbox-app/car-rk-test/src/flowunit/output_broker_pre/violation/v-{}-{}.jpg".format(frame_index, vioaltion_num), out_img)
+                        cv2.imwrite("/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/output_broker_pre/violation/v-{}-{}.jpg".format(frame_index, vioaltion_num), out_img)
                     vioaltion_num = vioaltion_num + 1
 
                     event_json = {
