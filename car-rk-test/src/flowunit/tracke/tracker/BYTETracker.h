@@ -12,7 +12,7 @@ struct Object
 class BYTETracker
 {
 public:
-	BYTETracker(int frame_rate = 30, int track_buffer = 30);
+	BYTETracker(int frame_rate = 30, int track_buffer = 30,float track_thresh_= 0.4, float high_thresh_= 0.6, float match_thresh_= 0.8);
 	~BYTETracker();
 
 	vector<STrack> update(const vector<Object>& objects);

@@ -1,11 +1,11 @@
 #include "BYTETracker.h"
 #include <fstream>
 
-BYTETracker::BYTETracker(int frame_rate, int track_buffer)
+BYTETracker::BYTETracker(int frame_rate, int track_buffer, float track_thresh_, float high_thresh_, float match_thresh_)
 {
-	track_thresh = 0.4;
-	high_thresh = 0.6;
-	match_thresh = 0.8;
+	track_thresh = track_thresh_;
+	high_thresh = high_thresh_;
+	match_thresh = match_thresh_;
 
 	frame_id = 0;
 	max_time_lost = int(frame_rate / 30.0 * track_buffer);

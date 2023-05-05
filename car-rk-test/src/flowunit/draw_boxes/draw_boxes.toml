@@ -21,6 +21,9 @@ description = "collapse all detect object"
 entry = "draw_boxes@DrawBoxes"
 type = "python"
 
+[config]
+draw_results = false
+
 #collapse = true
 
 [input]

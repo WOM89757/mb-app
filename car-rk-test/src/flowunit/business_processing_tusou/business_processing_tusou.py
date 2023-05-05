@@ -77,16 +77,19 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
         output_broker_config_path = config.get_string("output_broker_config")
         with open(output_broker_config_path) as cfg_file:
             self.output_cfg = cfg_file.read()
+        if self.output_cfg is None:
+            return modelbox.Status.StatusCode.STATUS_FAULT
         self.draw_results = config.get_bool("draw_results")
-        self.save_violation_img = config.get_bool("save_results")
+        self.save_results_img = config.get_bool("save_results")
         self.save_results_path = config.get_string("save_results_path")
         self.violation_event_root_path = os.path.join(self.save_results_path, "violation-event")
         self.objects_root_path = os.path.join(self.save_results_path, "objects")
-        if not os.path.exists(self.save_results_path) or not os.path.exists(self.violation_event_root_path) or os.path.exists(self.objects_root_path):
-            if not os.path.exists(self.violation_event_root_path):
-                os.makedirs(self.violation_event_root_path)
-            if not os.path.exists(self.objects_root_path):
-                os.makedirs(self.objects_root_path)
+        if self.save_results_img:
+            if not os.path.exists(self.save_results_path) or not os.path.exists(self.violation_event_root_path) or os.path.exists(self.objects_root_path):
+                if not os.path.exists(self.violation_event_root_path):
+                    os.makedirs(self.violation_event_root_path)
+                if not os.path.exists(self.objects_root_path):
+                    os.makedirs(self.objects_root_path)
         self.include_base64Img = config.get_bool("include_base64Img")
 
         # self.car_classes = ['Car', 'Bus', 'Truck', 'Tricycle', 'Motorbike', 'Bicycle', 'Special', 'vehicle_Unknown']
@@ -107,13 +110,23 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
         # 50	电动自行车
         # 60	拖拉机
         # 99	其他
-        self.wus_classes = {
-            "": 11,
-            "": 12,
+        self.wxs_classes = {
+            'Bus_Big': 11,
+            'Bus_Middle': 12, 'Bus_School': 12, 'Bus_Bus': 12, 'Bus_Ambulance': 12,
+            'Bus_Small': 13,
+            'Car_Saloon': 14, 'Car_SUV': 14, 'Car_MPV':14, 'Car_Jeep': 14, 'Car_Sports': 14, 'Car_Taxi': 14, 'Car_Police': 14,  
+            'Truck_Big': 21, 'Truck_Engineering': 21, 'Truck_Fueltank': 21, 'Truck_Construction': 21, 'Truck_Fire': 21, 'Truck_Garbage': 21, 'Truck_Watering': 21,
+            'Truck_Van': 22,
+            'Tricycle': 23,
+            'Motorbike': 30,
+            'Bicycle': 50, 
+            'Special_Military': 99, 'Special_other': 99, 'vehicle_Unknown': 99
         }
         self.rentou_classes = ['TOUKUI','TOU','FXP', 'BS']
-        self.track_object_max_size = 10
+        self.sgie_operate_on_class_ids = config.get_int_list("sgie_operate_on_class_ids")
+        self.track_object_max_size = config.get_int("track_max_size")
         self.track_objects = []
+        self.camera_id = config.get_string("camera_id")
         return modelbox.Status.StatusCode.STATUS_SUCCESS
 
     def process(self, data_context):
@@ -122,17 +135,6 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
         in_data = data_context.input("input_data")
         out_object_data_list = data_context.output("out_object_data")
         out_event_data_list = data_context.output("out_event_data")
-        # for buffer in in_data:
-        #     result = buffer.as_object()
-        #     print(result, type(result))
-
-        #     # result_str = (json.dumps(result) + chr(0)).encode('utf-8').strip()
-            # result_str = (json.dumps(result) + chr(0)).encode('utf-8')
-            # add_buffer = modelbox.Buffer(self.get_bind_device(), result_str)
-            # add_buffer.set("msg_name", 'voilation detect')
-            # add_buffer.set("output_broker_names", 'webhook-wxs')
-            # out_data.push_back(add_buffer)
-
 
         for buffer in in_data:
             try:
@@ -153,13 +155,11 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
             channel = buffer.get("channel")
 
             out_img = np.array(buffer.as_object(), dtype=np.uint8)
-            # out_img = out_img.reshape(640, 640, channel)
             out_img = out_img.reshape(height, width, channel)
             out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
 
             head_boxes = buffer.get("sgie_bboxes")
             head_boxes = np.array(head_boxes).reshape(-1, 4)
-            # head_boxes = in_head_list.get("bboxes")
             head_boxes_num = buffer.get("sgie_bboxes_num")
             head_boxes_num = head_boxes_num.astype(int)
             sgie_classes = buffer.get("sgie_bboxes_classes")
@@ -167,7 +167,6 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
             sgie_scores = buffer.get("sgie_bboxes_scores")
             # sgie_scores = sgie_scores.astype(int)
 
-            # emotion = emotion.as_object().split(",")
             modelbox.debug("pgie_bboxes: {}".format(bboxes))
             h_frist = 0
 
@@ -217,7 +216,7 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                 if self.draw_results:
                     #pgie
                     cv2.rectangle(out_img, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 2)
-                    cv2.putText(out_img, '{0} {1} {2:.2f}'.format(trackid, self.car_classes[cl], score),
+                    cv2.putText(out_img, '{0} {1} {2:.2f}'.format(trackid, self.wxs_classes[self.car_classes[cl]], score),
                                                             (box[0], box[1] - 6),
                                                             cv2.FONT_HERSHEY_SIMPLEX,
                                                             0.6, (0, 255, 255), 2)
@@ -229,6 +228,8 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                 head_list = []
                 # modelbox.info("head fiter {}".format(head_fiter))
                 for h_box, h_cl, h_sc in zip(head_fiter, head_cl_fiter, head_sc_fiter):
+                    if h_cl not in self.sgie_operate_on_class_ids:
+                        continue; 
                     # modelbox.info(type(h_box))
                     # modelbox.info("hbox : {}".format(h_box))
                     # modelbox.info("h_cl : {}".format(h_cl))
@@ -244,9 +245,9 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                                                             (h_top, h_left - 6),
                                                             cv2.FONT_HERSHEY_SIMPLEX,
                                                             0.6, (0, 255, 255), 2)
-                    # head_iter = '"X": "{}", "Y": "{}", "W": "{}", "H":"{}", "KXD": "{}"'.format(h_top, h_left, h_right - h_top, h_bottom - h_left, int(h_sc*100))
+                    # head_iter = '"x": "{}", "y": "{}", "w": "{}", "h":"{}", "kxd": "{}"'.format(h_top, h_left, h_right - h_top, h_bottom - h_left, int(h_sc*100))
                     # 以车辆左上角为原点
-                    head_iter = '"X": "{}", "Y": "{}", "W": "{}", "H":"{}", "KXD": "{}"'.format(h_box[0], h_box[1], h_box[3] - h_box[1], h_box[2] - h_box[0], int(h_sc*100))
+                    head_iter = '"x": "{}", "y": "{}", "w": "{}", "h":"{}", "kxd": "{}"'.format(h_box[0], h_box[1], h_box[3] - h_box[1], h_box[2] - h_box[0], int(h_sc*100))
                     head_list.append(head_iter)
                     # violation
                     if 'Truck' in self.car_classes[cl]:
@@ -271,11 +272,13 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                 find_violation = False
                 truck_total_estimated_people_cnt = boxcar_helmet_count + boxcar_non_helmet_count
                 if truck_total_estimated_people_cnt > 0:
-                    modelbox.info("detect truck overman {}".format(truck_total_estimated_people_cnt))
+                    # modelbox.info("detect truck overman {}".format(truck_total_estimated_people_cnt))
+                    pass
                 
                 moto_total_estimated_people_cnt = motorcycle_helmet_count + motorcycle_non_helmet_count
                 if moto_total_estimated_people_cnt > 2:
-                    modelbox.info("detect motobike overman {}".format(moto_total_estimated_people_cnt))
+                    # modelbox.info("detect motobike overman {}".format(moto_total_estimated_people_cnt))
+                    pass
                 if motorcycle_non_helmet_count > 0:
                     modelbox.info("detect motobike no helmet {}".format(motorcycle_non_helmet_count))
                     find_violation = True
@@ -283,19 +286,20 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                 sanlunche_total_estimated_people_cnt = sanlunche_helmet_count + sanlunche_non_helmet_count
                 if (sanlunche_total_estimated_people_cnt > 2 and find_steering) or (not find_steering and sanlunche_total_estimated_people_cnt > 1):
                     overman_num = sanlunche_total_estimated_people_cnt - 2 if find_steering else sanlunche_total_estimated_people_cnt - 1
-                    modelbox.info("detect sanlunche overman {}".format(overman_num))
+                    # modelbox.info("detect sanlunche overman {}".format(overman_num))
+                    pass
                 
                 h_frist = h_frist + head_boxes_num[ind]
 
                 if find_violation and True:
                     # add buffer : one car info and full img
-                    if self.save_violation_img:
+                    if self.save_results_img:
                         # out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
                         cv2.imwrite("{}/v-{}-{}.jpg".format(self.violation_event_root_path, frame_index, vioaltion_num), out_img)
                     vioaltion_num = vioaltion_num + 1
 
                     event_json = {
-                        "sxjbh": "camera id",
+                        "sxjbh": self.camera_id,
                         "tp": img_base64,
                         "gcsj": detect_time,
                         "clgzid": trackid,
@@ -303,7 +307,7 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                             "clwz": "{},{},{},{}".format(box[0], box[1], box[3] - box[1], box[2] - box[0])
                         },
                         "cxtz": {
-                            "cllxgl": "11-99"
+                            "cllxgl": "{}".format(self.wxs_classes[self.car_classes[cl]])
                         },
                         "jsxwtz": {
                             "mtcbdtk": "1_{}".format(int(score*100))
@@ -351,39 +355,37 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
 
 
             if len(removed_track_objects) > 0 and True:
-                #TODO track object and report when it be removed
+                # track object and report when it be removed
                 for iter in removed_track_objects:
 
                     modelbox.info("removed track {}".format(iter))
-                    if self.save_violation_img:
+                    if self.draw_results:
                         # out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
                         # iter_img = cv2.cvtColor(iter.img, cv2.COLOR_RGB2BGR)
                         cv2.imwrite("{}/r-{}-{}.jpg".format(self.objects_root_path, iter.frame_id, iter.id), iter.img)
                         cv2.imwrite("{}/r-{}-{}-leave.jpg".format(self.objects_root_path, iter.frame_id, iter.id), out_img)
+                    if self.include_base64Img:
+                        buffer_img = cv2.imencode('.jpg', iter.img)[1]
+                        img_base64_str = str(base64.b64encode(buffer_img))[2:-1]
+                    else:
+                        img_base64_str = img_base64
                     report_json = {
-                        "sxjbh": "camera id",
-                        "tp": img_base64,
+                        "sxjbh": self.camera_id,
+                        "tp": img_base64_str,
                         "gcsj": iter.detect_time,
                         "clgzid": iter.id,
                         "wztz": {
                             "clwz": "{},{},{},{}".format(iter.x, iter.y, iter.w, iter.h)
                         },
                         "cxtz": {
-                            "cllxgl": "11-99"
+                            "cllxgl": "{}".format(self.wxs_classes[self.car_classes[iter.classes]])
                         },
                         "jsxwtz": {
                             "mtcbdtk": "0_{}".format(int(100))
                         },
                         "fjsbxx": ""
                     }
-                    # event_json = json.dumps(event_json, indent=4, ensure_ascii=False)
                     report_json = json.dumps(report_json, ensure_ascii=False)
-                    # print(jsonString)
-
-
-                    # event_buffer = modelbox.Buffer(self.get_bind_device(), event_json)
-                    # # event_buffer.copy_meta(image)
-                    # out_event_data_list.push_back(event_buffer)
 
                     result_str = report_json
                     add_buffer = modelbox.Buffer(self.get_bind_device(), result_str)

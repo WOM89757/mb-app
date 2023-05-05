@@ -29,6 +29,7 @@ class DrawBoxes(modelbox.FlowUnit):
         self.rentou_classes = ['TOUKUI','TOU','FXP', 'BS']
 
     def open(self, config):
+        self.draw_results = config.get_bool("draw_results")
         return modelbox.Status.StatusCode.STATUS_SUCCESS
 
     def process(self, data_context):
@@ -68,48 +69,48 @@ class DrawBoxes(modelbox.FlowUnit):
             sgie_classes = sgie_classes.astype(int)
             sgie_scores = head_buffer.get("bboxes_scores")
             # sgie_scores = sgie_scores.astype(int)
+            if self.draw_results:
+                
+                modelbox.debug("car_bboxes: {}".format(bboxes))
+                h_frist = 0
+                for ind, box in enumerate(bboxes):
+                    cl = pgie_classes[ind]
+                    score = pgie_scores[ind]
+                    # modelbox.info(type(box))
+                    # modelbox.info(" index {} {} {}".format(ind, head_boxes_num[ind], box[0]))
+                    # modelbox.info("{} {}".format(box[2], box[3]))
+                    cv2.rectangle(out_img, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 2)
+                    # cv2.putText(out_img, , (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
 
-            # emotion = emotion.as_object().split(",")
-            modelbox.debug("car_bboxes: {}".format(bboxes))
-            h_frist = 0
-            for ind, box in enumerate(bboxes):
-                cl = pgie_classes[ind]
-                score = pgie_scores[ind]
-                # modelbox.info(type(box))
-                # modelbox.info(" index {} {} {}".format(ind, head_boxes_num[ind], box[0]))
-                # modelbox.info("{} {}".format(box[2], box[3]))
-                cv2.rectangle(out_img, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 2)
-                # cv2.putText(out_img, , (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
 
+                    # print('class: {}, score: {}'.format(self.car_classes[cl], score))
+                    trackid = pgie_track_ids[ind]
+                    trackid = trackid if trackid else ''
+                    cv2.putText(out_img, '{0} {1} {2:.2f}'.format(trackid, self.car_classes[cl], score),
+                                                            (box[0], box[1] - 6),
+                                                            cv2.FONT_HERSHEY_SIMPLEX,
+                                                            0.6, (0, 255, 255), 2)
 
-                # print('class: {}, score: {}'.format(self.car_classes[cl], score))
-                trackid = pgie_track_ids[ind]
-                trackid = trackid if trackid else ''
-                cv2.putText(out_img, '{0} {1} {2:.2f}'.format(trackid, self.car_classes[cl], score),
-                                                        (box[0], box[1] - 6),
-                                                        cv2.FONT_HERSHEY_SIMPLEX,
-                                                        0.6, (0, 255, 255), 2)
-
-                head_fiter = head_boxes[h_frist:(h_frist+head_boxes_num[ind])]
-                head_cl_fiter = sgie_classes[h_frist:(h_frist+head_boxes_num[ind])]
-                head_sc_fiter = sgie_scores[h_frist:(h_frist+head_boxes_num[ind])]
-                # modelbox.info("head fiter {}".format(head_fiter))
-                for h_box, h_cl, h_sc in zip(head_fiter, head_cl_fiter, head_sc_fiter):
-                    # modelbox.info(type(h_box))
-                    # modelbox.info("hbox : {}".format(h_box))
-                    # modelbox.info("h_cl : {}".format(h_cl))
-                    # modelbox.info("h_sc : {}".format(h_sc))
-                    h_top = h_box[0] + box[0]
-                    h_left = h_box[1] + box[1]
-                    h_right = h_box[2] + box[0]
-                    h_bottom = h_box[3] + box[1]
-                    cv2.rectangle(out_img, (h_top, h_left), (h_right, h_bottom), (0, 255, 0), 1)
-                    cv2.putText(out_img, '{0} {1:.2f}'.format(self.rentou_classes[h_cl], h_sc),
-                                                        (h_top, h_left - 6),
-                                                        cv2.FONT_HERSHEY_SIMPLEX,
-                                                        0.3, (255, 0, 255), 2)
-                h_frist = h_frist + head_boxes_num[ind]
-            
+                    head_fiter = head_boxes[h_frist:(h_frist+head_boxes_num[ind])]
+                    head_cl_fiter = sgie_classes[h_frist:(h_frist+head_boxes_num[ind])]
+                    head_sc_fiter = sgie_scores[h_frist:(h_frist+head_boxes_num[ind])]
+                    # modelbox.info("head fiter {}".format(head_fiter))
+                    for h_box, h_cl, h_sc in zip(head_fiter, head_cl_fiter, head_sc_fiter):
+                        # modelbox.info(type(h_box))
+                        # modelbox.info("hbox : {}".format(h_box))
+                        # modelbox.info("h_cl : {}".format(h_cl))
+                        # modelbox.info("h_sc : {}".format(h_sc))
+                        h_top = h_box[0] + box[0]
+                        h_left = h_box[1] + box[1]
+                        h_right = h_box[2] + box[0]
+                        h_bottom = h_box[3] + box[1]
+                        cv2.rectangle(out_img, (h_top, h_left), (h_right, h_bottom), (0, 255, 0), 1)
+                        cv2.putText(out_img, '{0} {1:.2f}'.format(self.rentou_classes[h_cl], h_sc),
+                                                            (h_top, h_left - 6),
+                                                            cv2.FONT_HERSHEY_SIMPLEX,
+                                                            0.3, (255, 0, 255), 2)
+                    h_frist = h_frist + head_boxes_num[ind]
+                
            
             # modelbox.info("head_bboxes: {}".format(head_boxes))
             # for box in head_boxes:

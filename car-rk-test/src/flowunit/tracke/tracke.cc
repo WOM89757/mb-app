@@ -22,9 +22,13 @@ TrackeFlowUnit::~TrackeFlowUnit() = default;
 
 modelbox::Status TrackeFlowUnit::Open(
     const std::shared_ptr<modelbox::Configuration> &opts) {
-    opts->GetFloat("frame_rate", this->fps);
+    opts->GetInt16("frame_rate", this->fps);
     //TODO alter fps of byte tracker
-    this->tracker = std::make_shared<BYTETracker>(this->fps, 30);
+    opts->GetInt16("track_buffer", this->track_buffer);
+    opts->GetFloat("track_thresh", this->track_thresh);
+    opts->GetFloat("high_thresh", this->high_thresh);
+    opts->GetFloat("match_thresh", this->match_thresh);
+    this->tracker = std::make_shared<BYTETracker>(this->fps, 30, track_thresh, high_thresh, match_thresh);
     this->init_flag = false;
 
     return modelbox::STATUS_OK;

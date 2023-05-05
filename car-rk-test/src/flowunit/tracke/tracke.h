@@ -62,8 +62,13 @@ class TrackeFlowUnit : public modelbox::FlowUnit {
  private:
   std::shared_ptr<BYTETracker> tracker;
   std::mutex tracker_mtx_;
-  float fps;
+  int fps;
+  int track_buffer;
   bool init_flag;
+  float track_thresh;
+	float high_thresh;
+	float match_thresh;
+
 };
 
 #endif  // MODELBOX_FLOWUNIT_TRACKE_CPU_H_
