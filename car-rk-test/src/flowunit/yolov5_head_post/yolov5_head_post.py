@@ -104,6 +104,11 @@ class Yolov5Post(modelbox.FlowUnit):
 
             # ratio = min(self.net_h/height, self.net_w/width)
             if bboxes is not None:
+                _scores_pos = np.where(scores >= self.conf_thre)
+                bboxes = bboxes[_scores_pos]
+                classes = classes[_scores_pos]
+                scores = scores[_scores_pos]
+
                 nbboxes_num = np.append(nbboxes_num, len(bboxes))
                 for box in bboxes:
                     box[np.where(box<0)] = 0

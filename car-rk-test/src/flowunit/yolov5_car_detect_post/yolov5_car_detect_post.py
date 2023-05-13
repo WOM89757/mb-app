@@ -97,6 +97,10 @@ class Yolov5Post(modelbox.FlowUnit):
             # ratio_h = self.net_h/720
 
             if bboxes is not None:
+                _scores_pos = np.where(scores >= self.conf_thre)
+                bboxes = bboxes[_scores_pos]
+                classes = classes[_scores_pos]
+                scores = scores[_scores_pos]
                 modelbox.debug("--------boxes size: {} ".format(len(bboxes)))
                 modelbox.debug(" \n{}".format(bboxes))
                 modelbox.debug("----1-- {}".format(bboxes))

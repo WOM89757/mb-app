@@ -26,7 +26,8 @@ class DrawBoxes(modelbox.FlowUnit):
             'Bus_Small', 'Bus_School', 'Bus_Bus', 'Bus_Ambulance', 'Truck_Big','Truck_Van', 'Truck_Engineering', 'Truck_Fueltank', 'Truck_Construction',
             'Truck_Fire', 'Truck_Garbage', 'Truck_Watering', 'Tricycle', 'Motorbike', 'Bicycle', 'Special_Military', 
             'Special_other', 'vehicle_Unknown']
-        self.rentou_classes = ['TOUKUI','TOU','FXP', 'BS']
+        # self.rentou_classes = ['TOUKUI','TOU','FXP', 'BS']
+        self.rentou_classes = ['0','1','2', '3']
 
     def open(self, config):
         self.draw_results = config.get_bool("draw_results")
@@ -79,7 +80,7 @@ class DrawBoxes(modelbox.FlowUnit):
                     # modelbox.info(type(box))
                     # modelbox.info(" index {} {} {}".format(ind, head_boxes_num[ind], box[0]))
                     # modelbox.info("{} {}".format(box[2], box[3]))
-                    cv2.rectangle(out_img, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 2)
+                    cv2.rectangle(out_img, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 1)
                     # cv2.putText(out_img, , (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
 
 
@@ -89,7 +90,7 @@ class DrawBoxes(modelbox.FlowUnit):
                     cv2.putText(out_img, '{0} {1} {2:.2f}'.format(trackid, self.car_classes[cl], score),
                                                             (box[0], box[1] - 6),
                                                             cv2.FONT_HERSHEY_SIMPLEX,
-                                                            0.6, (0, 255, 255), 2)
+                                                            0.6, (0, 0, 255), 1)
 
                     head_fiter = head_boxes[h_frist:(h_frist+head_boxes_num[ind])]
                     head_cl_fiter = sgie_classes[h_frist:(h_frist+head_boxes_num[ind])]
@@ -104,11 +105,11 @@ class DrawBoxes(modelbox.FlowUnit):
                         h_left = h_box[1] + box[1]
                         h_right = h_box[2] + box[0]
                         h_bottom = h_box[3] + box[1]
-                        cv2.rectangle(out_img, (h_top, h_left), (h_right, h_bottom), (0, 255, 0), 1)
+                        cv2.rectangle(out_img, (h_top, h_left), (h_right, h_bottom), (255, 255, 0), 1)
                         cv2.putText(out_img, '{0} {1:.2f}'.format(self.rentou_classes[h_cl], h_sc),
-                                                            (h_top, h_left - 6),
+                                                            (h_top, h_bottom + 6),
                                                             cv2.FONT_HERSHEY_SIMPLEX,
-                                                            0.3, (255, 0, 255), 2)
+                                                            0.3, (0, 0, 255), 1)
                     h_frist = h_frist + head_boxes_num[ind]
                 
            
