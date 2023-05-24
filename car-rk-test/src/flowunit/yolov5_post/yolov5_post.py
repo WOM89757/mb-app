@@ -120,6 +120,13 @@ class Yolov5Post(modelbox.FlowUnit):
                 #                                             0.6, (0, 255, 255), 2)
 
                 add_buffer = modelbox.Buffer(self.get_bind_device(), img_data)
+                bboxes = bboxes.astype(int)
+                # bboxes = bboxes.astype(float)
+                classes = classes.astype(int)
+                scores = scores.astype(float)
+                add_buffer.set("bboxes", bboxes.flatten().tolist())
+                add_buffer.set("bboxes_classes", classes.flatten().tolist())
+                add_buffer.set("bboxes_scores", scores.flatten().tolist())
                 add_buffer.copy_meta(buffer_img)
                 out_data.push_back(add_buffer)
 

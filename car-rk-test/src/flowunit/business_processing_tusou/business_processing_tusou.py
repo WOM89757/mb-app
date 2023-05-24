@@ -248,7 +248,13 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                     #                                         0.6, (0, 255, 255), 2)
                     # head_iter = '"x": "{}", "y": "{}", "w": "{}", "h":"{}", "kxd": "{}"'.format(h_top, h_left, h_right - h_top, h_bottom - h_left, int(h_sc*100))
                     # 以车辆左上角为原点
-                    head_iter = '"x": "{}", "y": "{}", "w": "{}", "h":"{}", "kxd": "{}"'.format(h_box[0], h_box[1], h_box[3] - h_box[1], h_box[2] - h_box[0], int(h_sc*100))
+                    head_iter = {
+                        "x": int(h_box[0]),
+                        "y": int(h_box[1]),
+                        "w": int(h_box[3] - h_box[1]),
+                        "h": int(h_box[2] - h_box[0]),
+                        "kxd": float(h_sc)
+                    }
                     head_list.append(head_iter)
                     # violation
                     if 'Truck' in self.car_classes[cl]:
@@ -279,19 +285,19 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                 
                 moto_total_estimated_people_cnt = motorcycle_helmet_count + motorcycle_non_helmet_count
                 if motorcycle_non_helmet_count > 0:
-                    modelbox.info("detect motobike no helmet {}".format(motorcycle_non_helmet_count))
+                    modelbox.debug("detect motobike no helmet {}".format(motorcycle_non_helmet_count))
                     find_violation = 1
                     violation_num  = str(find_violation) if violation_num == '' else violation_num + '#' + str(find_violation)
                 
                 if moto_total_estimated_people_cnt > 2:
-                    modelbox.info("detect motobike overman {}".format(moto_total_estimated_people_cnt))
+                    modelbox.debug("detect motobike overman {}".format(moto_total_estimated_people_cnt))
                     find_violation = 2
                     violation_num  = str(find_violation) if violation_num == '' else violation_num + '#' + str(find_violation)
 
                 sanlunche_total_estimated_people_cnt = sanlunche_helmet_count + sanlunche_non_helmet_count
                 if (sanlunche_total_estimated_people_cnt > 2 and find_steering) or (not find_steering and sanlunche_total_estimated_people_cnt > 1):
                     overman_num = sanlunche_total_estimated_people_cnt - 2 if find_steering else sanlunche_total_estimated_people_cnt - 1
-                    modelbox.info("detect sanlunche overman {}".format(overman_num))
+                    modelbox.debug("detect sanlunche overman {}".format(overman_num))
                     find_violation = 3
                     violation_num  = str(find_violation) if violation_num == '' else violation_num + '#' + str(find_violation)
                 
@@ -308,6 +314,10 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                     if self.save_results_img:
                         cv2.imwrite("{}/v-{}-{}-{}.jpg".format(self.violation_event_root_path, frame_index, vioaltion_num, violation_num), out_img)
                     vioaltion_num = vioaltion_num + 1
+                    ryxx = {
+                        "sl": int(head_boxes_num[ind]),
+                        "wzxx": head_list
+                    }
 
                     event_json = {
                         "sxjbh": self.camera_id,
@@ -318,21 +328,17 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                             "clwz": "{},{},{},{}".format(box[0], box[1], box[3] - box[1], box[2] - box[0])
                         },
                         "cxtz": {
-                            "cllxgl": "{}".format(self.wxs_classes[self.car_classes[cl]])
+                            "cllxfl": "{}".format(self.wxs_classes[self.car_classes[cl]])
                         },
                         "jsxwtz": {
                             "mtcbdtk": "1_{}".format(int(score*100))
                         },
                         "fjsbxx": {
-                            "ryxx": {
-                                "s1": int(head_boxes_num[ind]),
-                                "wzxx": head_list
-                            }
+                            "ryxx": ryxx
                         }
                     }
                     # event_json = json.dumps(event_json, indent=4, ensure_ascii=False)
                     event_json = json.dumps(event_json, ensure_ascii=False)
-                    # print(jsonString)
 
 
                     # event_buffer = modelbox.Buffer(self.get_bind_device(), event_json)
@@ -353,7 +359,7 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
             if (len(self.track_objects) > 0):
                 tmp_track_objects = []
                 for iter in self.track_objects:
-                    if (frame_index - iter.frame_id) < 30:
+                    if (frame_index - iter.frame_id) < 60:
                         tmp_track_objects.append(iter)
                     else:
                         pass
@@ -365,11 +371,11 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
             #     modelbox.info("after {}".format(iter))
 
 
-            if len(removed_track_objects) > 0 and False:
+            if len(removed_track_objects) > 0 and True:
                 # track object and report when it be removed
                 for iter in removed_track_objects:
 
-                    modelbox.info("removed track {}".format(iter))
+                    modelbox.debug("removed track {}".format(iter))
                     if self.save_results_img:
                         # out_img = cv2.cvtColor(out_img, cv2.COLOR_RGB2BGR)
                         # iter_img = cv2.cvtColor(iter.img, cv2.COLOR_RGB2BGR)
@@ -389,7 +395,7 @@ class Business_processing_tusouFlowUnit(modelbox.FlowUnit):
                             "clwz": "{},{},{},{}".format(iter.x, iter.y, iter.w, iter.h)
                         },
                         "cxtz": {
-                            "cllxgl": "{}".format(self.wxs_classes[self.car_classes[iter.classes]])
+                            "cllxfl": "{}".format(self.wxs_classes[self.car_classes[iter.classes]])
                         },
                         "jsxwtz": {
                             "mtcbdtk": "0_{}".format(int(100))

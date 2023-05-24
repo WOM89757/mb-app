@@ -22,13 +22,13 @@ TrackeFlowUnit::~TrackeFlowUnit() = default;
 
 modelbox::Status TrackeFlowUnit::Open(
     const std::shared_ptr<modelbox::Configuration> &opts) {
-    opts->GetInt16("frame_rate", this->fps);
+    this->fps = opts->GetInt16("frame_rate");
     //TODO alter fps of byte tracker
-    opts->GetInt16("track_buffer", this->track_buffer);
-    opts->GetFloat("track_thresh", this->track_thresh);
-    opts->GetFloat("high_thresh", this->high_thresh);
-    opts->GetFloat("match_thresh", this->match_thresh);
-    this->tracker = std::make_shared<BYTETracker>(this->fps, 30, track_thresh, high_thresh, match_thresh);
+    this->track_buffer = opts->GetInt16("track_buffer");
+    this->track_thresh = opts->GetFloat("track_thresh");
+    this->high_thresh = opts->GetFloat("high_thresh");
+    this->match_thresh = opts->GetFloat("match_thresh");
+    this->tracker = std::make_shared<BYTETracker>(this->fps, this->track_buffer, track_thresh, high_thresh, match_thresh);
     this->init_flag = false;
 
     return modelbox::STATUS_OK;
@@ -77,7 +77,7 @@ modelbox::Status TrackeFlowUnit::Process(
         for(int i = 0; i < box_num; i++) {
             Object track_object;
             // x1, y1, x2, y2, score, label 
-            int ind = i * 6;
+            int ind = i * 4;
             track_object.rect.x = bboxes[ind];
             track_object.rect.y = bboxes[ind + 1];
             track_object.rect.width = bboxes[ind + 2] - bboxes[ind];
@@ -87,12 +87,12 @@ modelbox::Status TrackeFlowUnit::Process(
             objects.emplace_back(track_object);
         }
 
+        std::vector<int> tracker_ids(objects.size(),0);
         std::lock_guard<std::mutex> lk(tracker_mtx_);
         std::vector<STrack> output_stracks = this->tracker->update(objects);
         // MBLOG_INFO << "output stacks size " << output_stracks.size();
         tracker_mtx_.unlock(); 
 
-        std::vector<int> tracker_ids(objects.size(),0);
         for (uint i = 0; i < output_stracks.size(); i++) {
             tracker_ids[output_stracks[i].detect_id] = output_stracks[i].track_id;
         }
@@ -120,13 +120,39 @@ modelbox::Status TrackeFlowUnit::Process(
         // cv::Mat img_data(cv::Size(width, height), CV_8UC3);
         // memcpy(img_data.data, input_data, input_bufs->At(k)->GetBytes());
 
-        // draw  track id
-        // for (int i = 0; i < objects.size(); i++) {
-        //     auto tlwh = objects[i].rect;
-        //     // if (tracker_ids)
-        //     cv::putText(img_data, format("%d", tracker_ids[i]), cv::Point(tlwh.x, tlwh.y - 5), 
-        //                       0, 2, cv::Scalar(0, 255, 0), 2);
-        //     cv::rectangle(img_data, cv::Rect(tlwh.x, tlwh.y, tlwh.width, tlwh.height), cv::Scalar(255, 0, 0), 2); 
+        // // draw  track id
+
+        // for (int i = 0; i < output_stracks.size(); i++)
+		// {
+		// 	std::vector<float> tlwh = output_stracks[i].tlwh;
+		// 	bool vertical = tlwh[2] / tlwh[3] > 1.6;
+		// 	// if (tlwh[2] * tlwh[3] > 20 && !vertical)
+		// 	if (1)
+		// 	{
+		// 		cv::Scalar s = tracker->get_color(output_stracks[i].track_id);
+		// 		putText(img_data, format("%d", output_stracks[i].track_id), Point(tlwh[0] + 5, tlwh[1] + 15), 
+        //                 0, 0.6, Scalar(0, 0, 255), 2, LINE_AA);
+        //         rectangle(img_data, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
+		// 	}
+		// }
+        // std::string filename = "/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/tracke/result/" + std::to_string(index) + ".jpg";
+        // // MBLOG_INFO << "filename: " << filename;
+        // cv::imwrite(filename, img_data);
+
+        // for(int i = 0; i < box_num; i++) {
+        //     int ind = i * 6;
+        //     // MBLOG_INFO << "tracker id : " << tracker_ids[i];
+        //     // cv::putText(img_data, format("%d", tracker_ids[i]), cv::Point(bboxes[ind], bboxes[ind + 1] - 5), 
+        //     //                   0, 2, cv::Scalar(0, 255, 0), 2);
+        //     // cv::rectangle(img_data, cv::Rect(bboxes[ind], bboxes[ind + 1], bboxes[ind + 2] - bboxes[ind], bboxes[ind + 3] - bboxes[ind + 1]), cv::Scalar(255, 0, 0), 2); 
+        //     // x1, y1, x2, y2, score, label 
+        //     // track_object.rect.x = bboxes[ind];
+        //     // track_object.rect.y = bboxes[ind + 1];
+        //     // track_object.rect.width = bboxes[ind + 2] - bboxes[ind];
+        //     // track_object.rect.height = bboxes[ind + 3] - bboxes[ind + 1];
+        //     // track_object.prob = scores[i];
+        //     // track_object.label = classes[i];
+        //     // objects.emplace_back(track_object);
         // }
 
         // auto output_buffer = std::make_shared<modelbox::Buffer>(GetBindDevice());

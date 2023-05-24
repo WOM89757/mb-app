@@ -6,6 +6,7 @@ BYTETracker::BYTETracker(int frame_rate, int track_buffer, float track_thresh_, 
 	track_thresh = track_thresh_;
 	high_thresh = high_thresh_;
 	match_thresh = match_thresh_;
+	// cout << frame_rate << " " << track_buffer << " " << track_thresh << " " << high_thresh << " " << match_thresh << std::endl;
 
 	frame_id = 0;
 	max_time_lost = int(frame_rate / 30.0 * track_buffer);

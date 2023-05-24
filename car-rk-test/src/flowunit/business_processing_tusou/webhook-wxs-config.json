@@ -3,12 +3,12 @@
       {
         "type" : "webhook",
         "name" : "webhook-wxs-violation",
-        "cfg" : "{\"url\" : \"http://192.168.3.18:54321\", \"headers\" : {\"Content-Type\" : \"application/json; charset=utf-8 \",\"header2\" : \"test2\"}}" 
+        "cfg" : "{\"url\" : \"http://192.168.3.13:5000/vehicle/save\", \"headers\" : {\"Content-Type\" : \"application/json; charset=utf-8 \",\"header2\" : \"test2\"}}" 
       },
       {
         "type" : "webhook",
         "name" : "webhook-wxs-object",
-        "cfg" : "{\"url\" : \"http://192.168.3.18:54321\", \"headers\" : {\"Content-Type\" : \"application/json; charset=utf-8 \",\"header2\" : \"test2\"}}" 
+        "cfg" : "{\"url\" : \"http://192.168.3.13:5000/vehicle/save\", \"headers\" : {\"Content-Type\" : \"application/json; charset=utf-8 \",\"header2\" : \"test2\"}}" 
       }
 
     ]

@@ -15,8 +15,8 @@ type = "python" # Fixed value
 #collapse = true
 
 [config]
-#output_broker_config = "/opt/modelbox/application/tusou-rockchip/flowunit/business_processing_tusou/webhook-wxs-config.json"
-output_broker_config = "/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/business_processing_tusou/webhook-wxs-config.json"
+output_broker_config = "/opt/modelbox/application/tusou-rockchip/flowunit/business_processing_tusou/webhook-wxs-config.json"
+#output_broker_config = "/userdata/wm/code/modelbox-app/car-rk-test/src/flowunit/business_processing_tusou/webhook-wxs-config.json"
 draw_results = false
 #sgie_operate_on_class_ids = 0,1
 save_results = false
